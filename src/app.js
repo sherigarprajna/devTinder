@@ -1,28 +1,25 @@
 const express = require('express')
 
 const app = express();
+const {adminAuth,userAuth} = require("../middlewers/auth")
 
 
-// app.use("/hello",(req,res)=>{
-//     res.send("Hello Hello Hello")
-// })
-// app.use("/test",(req, res)=>{            // response handler
-//     res.send("Hello From the server.!11122ee")
-// })
+app.use("/admin",adminAuth)
 
-// app.get("/user",(req,res)=>{
-//     res.send({firstName: 'Sherigar',secondName: 'Prajna'})
-// })
+app.get("/user",userAuth,(rrq,res)=>{
+res.send("user success")
+})
 
-app.get("/user",[(req,res,next)=>{
-console.log("response hander 1");
-// res.send("Respons1")
-next();
-},(req,res,next)=>{
-console.log("response hander 2");
-res.send("Respons2")
-}]
-)
+app.get("/admin/getUser",(req,res)=>{
+res.send("get success")
+});
+
+app.get("/admin/deleteUser",(req,res)=>{
+    res.send("delete user api success")
+});
+
+
+
 app.listen(3000,()=>{
     console.log("Server is Running successfully..")
 })
