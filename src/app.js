@@ -19,20 +19,22 @@ dbconnect()
 //sign up user
 app.post("/signUp", async (req, res) => {
   //Creating the instance of the user model
-  const user = await User(req.body);
+  const user = User(req.body);
   try {
-    user.save();
+        if(req.body?.skills.length > 5) {
+      return res.status(400).send("Skills should not exceed 5 items");
+    }
+    await user.save();
     res.send("User inserted");
   } catch (error) {
-    res.status(400).send("Error while saving the user", +error.message);
+    res.status(400).send("Error while saving the user: " + error.message);
   }
 });
 
 //get users
 app.get("/user", async (req, res) => {
+  const users = await User.find({ emailId: req.body.emailID });
   try {
-    const users = await User.find({ emailId: req.body.emailID });
-    console.log('users: ', users);
     if (!users || users.length === 0) {
       res.status(404).send("No users found with the provided emailID");
     } else {
@@ -43,11 +45,11 @@ app.get("/user", async (req, res) => {
   }
 });
 
-//get users
+//get all users
 app.get("/feed", async (req, res) => {
   try {
     const users = await User.find({});
-    console.log('users: ', users);
+    console.log("users: ", users);
     if (!users || users.length === 0) {
       res.status(404).send("No users found");
     } else {
@@ -58,6 +60,7 @@ app.get("/feed", async (req, res) => {
   }
 });
 
+//delete user
 app.delete("/user", async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.body.id);
@@ -70,14 +73,27 @@ app.delete("/user", async (req, res) => {
   }
 });
 
-app.put("/user", async (req, res) => {
+//update user
+app.put("/user/:userId", async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.body.id, req.body);
+    const id = req.params.userId;
+    const ALLOWED_UPDATES = [ "age", "gender", "about", "photoUrl", "skills","id"];
+    const updates = Object.keys(req.body).every((key) => ALLOWED_UPDATES.includes(key))
+
+    if (!updates) {
+      return res.status(400).send("Invalid updates");
+    }
+    if(req.body?.skills.length > 5) {
+      return res.status(400).send("Skills should not exceed 5 items");
+    }
+    const user = await User.findByIdAndUpdate(id, req.body, {
+      runValidators: true,
+    });
     if (!user) {
       return res.status(404).send("User not found");
     }
     res.status(200).send("User updated successfully");
   } catch (error) {
-    res.status(400).send("Error while updating the user", +error.message);
+    res.status(400).send("Error while updating the user" + error.message);
   }
 });
