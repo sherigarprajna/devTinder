@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const dbconnect = require("../config/database");
 const User = require("../models/user");
+const validation = require("../utils/validations");
+const bcrypt = require("bcrypt");
 
 app.use(express.json());
 
@@ -19,15 +21,53 @@ dbconnect()
 //sign up user
 app.post("/signUp", async (req, res) => {
   //Creating the instance of the user model
-  const user = User(req.body);
   try {
-        if(req.body?.skills.length > 5) {
+    //Validating the user data
+    validation(req);
+
+    const { password, firstName, lastName, emailId, skills } = req.body;
+
+    //Encrypting the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("hashedPassword: ", hashedPassword);
+
+    if (req.body?.skills.length > 5) {
       return res.status(400).send("Skills should not exceed 5 items");
     }
+    const user = User({
+      firstName,
+      lastName,
+      emailId,
+      password: hashedPassword,
+      skills,
+    });
     await user.save();
     res.send("User inserted");
   } catch (error) {
     res.status(400).send("Error while saving the user: " + error.message);
+  }
+});
+
+//login user
+app.post("/login", async (req, res) => {
+  const { emailId, password } = req.body;
+  try {
+    const user = await User.findOne({ emailId });
+    console.log("user: ", user);
+    if (!user) {
+      throw new Error("Invalid Credentials");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log("isPasswordValid: ", isPasswordValid);
+
+    if (isPasswordValid) {
+      res.status(200).send("Login successful");
+    } else {
+      throw new Error("Invalid Credentials");
+    }
+  } catch (error) {
+    res.status(400).send("Error while logging in: " + error.message);
   }
 });
 
@@ -77,13 +117,22 @@ app.delete("/user", async (req, res) => {
 app.put("/user/:userId", async (req, res) => {
   try {
     const id = req.params.userId;
-    const ALLOWED_UPDATES = [ "age", "gender", "about", "photoUrl", "skills","id"];
-    const updates = Object.keys(req.body).every((key) => ALLOWED_UPDATES.includes(key))
+    const ALLOWED_UPDATES = [
+      "age",
+      "gender",
+      "about",
+      "photoUrl",
+      "skills",
+      "id",
+    ];
+    const updates = Object.keys(req.body).every((key) =>
+      ALLOWED_UPDATES.includes(key)
+    );
 
     if (!updates) {
       return res.status(400).send("Invalid updates");
     }
-    if(req.body?.skills.length > 5) {
+    if (req.body?.skills.length > 5) {
       return res.status(400).send("Skills should not exceed 5 items");
     }
     const user = await User.findByIdAndUpdate(id, req.body, {
