@@ -11,7 +11,7 @@ authRouter.post("/signUp", async (req, res) => {
     //Validating the user data
     signUpDataValidation(req);
 
-    const { password, firstName, lastName, emailId, skills } = req.body;
+    const { password, firstName, lastName, emailId, skills, photoUrl } = req.body;
 
     //Encrypting the password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -26,6 +26,7 @@ authRouter.post("/signUp", async (req, res) => {
       emailId,
       password: hashedPassword,
       skills,
+      photoUrl
     });
     await user.save();
     res.send("User inserted");
@@ -51,7 +52,7 @@ authRouter.post("/login", async (req, res) => {
       const token = user.getJwt();
       console.log("token: ", token);
       res.cookie("token", token);
-      res.status(200).send("Login successful");
+      res.status(200).send(user);
     } else {
       throw new Error("Invalid Credentials");
     }
