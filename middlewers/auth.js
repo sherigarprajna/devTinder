@@ -8,10 +8,10 @@ const userAuth = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized access" });
     }
 
-    const decodedObj = await jwt.verify(token, "secretkey");
+    const decodedObj = await jwt.verify(token, "secretkeydevtinder$2323");
 
     if (!decodedObj) {
-      return res.status(401).json({ message: "Invalid token" });
+      return res.status(401).json({ message: "Please login again" });
     }
 
     const { _id } = decodedObj;
