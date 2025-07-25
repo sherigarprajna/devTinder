@@ -3,7 +3,7 @@ const validator = require("validator");
 const signUpDataValidation = (req) => {
   const { firstName, lastName, emailId, password } = req.body;
 
-  if (!firstName || !lastName) {
+  if (!firstName ) {
     throw new Error("Please enter a name");
   } else if (!validator.isEmail(emailId)) {
     throw new Error("Invalid email format.");

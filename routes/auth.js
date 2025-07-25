@@ -17,19 +17,25 @@ authRouter.post("/signUp", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("hashedPassword: ", hashedPassword);
 
-    if (req.body?.skills.length > 5) {
-      return res.status(400).send("Skills should not exceed 5 items");
-    }
+    // if (req.body?.skills.length > 5) {
+    //   return res.status(400).send("Skills should not exceed 5 items");
+    // }
     const user = User({
       firstName,
       lastName,
       emailId,
-      password: hashedPassword,
-      skills,
-      photoUrl
+      password: hashedPassword
     });
-    await user.save();
-    res.send("User inserted");
+
+    const savedUser = await user.save();
+    const token = user.getJwt();
+    res.cookie("token", token);
+
+    // Remove password field before sending response
+    const userObj = savedUser.toObject();
+    delete userObj.password;
+
+    res.json({message: "User inserted", data: userObj});
   } catch (error) {
     res.status(400).send("Error while saving the user: " + error.message);
   }

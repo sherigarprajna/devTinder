@@ -14,15 +14,16 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
         toUserId: loggedInUser._id,
         status: "interested",
       })
-      .populate("fromUserId", "firstName lastName emailId skills");
+      .populate("fromUserId", "firstName lastName emailId skills photoUrl");
 
-    const connectRequestData = connectRequestRecived.map(
-      (request) => request.fromUserId
-    );
+    // const connectRequestData = connectRequestRecived.map(
+    //   (request) => request.fromUserId
+    // );
+    // console.log("connectRequestData: ", connectRequestData);
 
     res.json({
       message: `Received requests for ${loggedInUser.firstName}`,
-      data: connectRequestData,
+      data: connectRequestRecived,
     });
   } catch (error) {
     res
@@ -30,6 +31,8 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
       .send("Error while fetching received requests: " + error.message);
   }
 });
+
+
 
 userRouter.get("/user/requests/connections", userAuth, async (req, res) => {
   const loggedInUser = req.user;
@@ -41,8 +44,8 @@ userRouter.get("/user/requests/connections", userAuth, async (req, res) => {
           { fromUserId: loggedInUser._id, status: "accepted" },
         ],
       })
-      .populate("fromUserId", "firstName lastName emailId skills")
-      .populate("toUserId", "firstName lastName emailId skills");
+      .populate("fromUserId", "firstName lastName emailId skills photoUrl")
+      .populate("toUserId", "firstName lastName emailId skills photoUrl");
 
     const connectRequestData = connectRequestRecived.map((request) => {
       if (request.fromUserId._id.toString() === loggedInUser._id.toString()) {
